@@ -11,15 +11,21 @@ class SlurmResponseError(Exception):
 
 
 class BaseClient:
-    version_str = ''
 
     def __init__(self, url: str, user: str, token: str):
-        self.url = url
+        self.version_str = ''
+        self._url = url
+        self.user = user
+        self.token = token
         self.headers = {
             'Content-Type': 'application/json',
             'X-SLURM-USER-NAME': f'{user}',
             'X-SLURM-USER-TOKEN': f'{token}',
         }
+
+    @property
+    def url(self) -> str:
+        return f'{self._url}/slurm/{self.version_str}'
 
     def diag(self):
         raise NotImplementedError()

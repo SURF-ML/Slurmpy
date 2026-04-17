@@ -8,6 +8,9 @@ import pytest
 from requests import HTTPError
 
 from slurmpy import SlurmClient
+from slurmpy.logger import slurmpy_logger
+from slurmpy.v0041 import ClientV0041
+from slurmpy.v0042 import ClientV0042
 
 
 class TestVersionAutoDetection:
@@ -37,6 +40,25 @@ class TestVersionAutoDetection:
 
             client = SlurmClient('https://slurm.example.com', 'user', 'token')
 
-            assert client.version_str == 'v0.0.41'
-            # Should have called diag endpoint once
+            assert client.version_str == 'v0.0.42'
             assert mock_get.call_count == 1
+
+    def test_falls_back_on_older(
+            self, mock_response, mock_failed_response
+    ):
+        original = ClientV0042.job_submit
+        del ClientV0042.job_submit
+
+        try:
+            with patch('requests.get') as mock_get, \
+                    patch.object(ClientV0041, 'job_submit', return_value={'job_id': 123}) as mock_v41_submit:
+
+                mock_get.return_value = mock_response
+
+                client = SlurmClient('https://slurm.example.com', 'user', 'token')
+                result = client.job_submit({'script': 'test.sh'})
+
+                mock_v41_submit.assert_called_once()
+                assert result == {'job_id': 123}
+        finally:
+            ClientV0042.job_submit = original

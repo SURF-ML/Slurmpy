@@ -19,9 +19,13 @@ from slurmpy.v0042 import Job
 class ClientV0042(BaseClient):
     version_str = 'v0.0.42'
 
+    def __init__(self, url: str, user: str, token: str):
+        super().__init__(url, user, token)
+        self.version_str = ClientV0042.version_str
+
     def diag(self):
         response = requests.get(
-            f'{self.url}/slurm/v0.0.42/diag',
+            f'{self.url}/diag',
             headers=self.headers
         )
         response.raise_for_status()
@@ -30,8 +34,8 @@ class ClientV0042(BaseClient):
     def job_submit(self, job_data: Job):
         """Submit a job for v0.0.42."""
         response = requests.post(
-            f'{self.url}/slurm/v0.0.42/job/submit',
-            data=job_data.json(),
+            f'{self.url}/job/submit',
+            json=job_data.model_dump(),
             headers=self.headers,
         )
         response.raise_for_status()
@@ -39,7 +43,7 @@ class ClientV0042(BaseClient):
 
     def job_status(self, job_id: str) -> dict[str, Any]:
         response = requests.get(
-            f'{self.url}/slurm/v0.0.42/job/{job_id}',
+            f'{self.url}/job/{job_id}',
             headers=self.headers,
         )
         response.raise_for_status()
@@ -63,7 +67,7 @@ class ClientV0042(BaseClient):
 
     def job_cancel(self, job_id: str) -> None:
         response = requests.delete(
-            f'{self.url}/slurm/v0.0.42/job/{job_id}',
+            f'{self.url}/job/{job_id}',
             headers=self.headers,
         )
         response.raise_for_status()
@@ -86,7 +90,7 @@ class ClientV0042(BaseClient):
             Response from the API or None if extension not triggered
         """
         response = requests.get(
-            f'{self.url}/slurm/v0.0.42/job/{job_id}',
+            f'{self.url}/job/{job_id}',
             headers=self.headers
         )
         if response.status_code != 200:
@@ -101,7 +105,7 @@ class ClientV0042(BaseClient):
 
         current_time_limit = job.get('time_limit').get('number')
         response = requests.post(
-            f'{self.url}/slurm/v0.0.42/job/{job_id}',
+            f'{self.url}/job/{job_id}',
             json={'time_limit': {'set': True, 'number': current_time_limit + add_minutes}},
             headers=self.headers
         )

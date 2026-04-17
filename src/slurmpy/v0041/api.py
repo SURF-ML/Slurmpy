@@ -17,13 +17,15 @@ from slurmpy.v0041 import Job
 
 
 class ClientV0041(BaseClient):
-    """Handler for Slurm API v0.0.41."""
-
     version_str = 'v0.0.41'
+
+    def __init__(self, url: str, user: str, token: str):
+        super().__init__(url, user, token)
+        self.version_str = ClientV0041.version_str
 
     def diag(self):
         response = requests.get(
-            f'{self.url}/slurm/v0.0.41/diag',
+            f'{self.url}/diag',
             headers=self.headers
         )
         response.raise_for_status()
@@ -32,8 +34,8 @@ class ClientV0041(BaseClient):
     def job_submit(self, job_data: Job):
         """Submit a job for v0.0.41."""
         response = requests.post(
-            f'{self.url}/slurm/v0.0.41/job/submit',
-            data=job_data.json(),
+            f'{self.url}/job/submit',
+            json=job_data.model_dump(),
             headers=self.headers,
         )
         response.raise_for_status()
@@ -41,7 +43,7 @@ class ClientV0041(BaseClient):
 
     def job_status(self, job_id: str) -> dict[str, Any]:
         response = requests.get(
-            f'{self.url}/slurm/v0.0.41/job/{job_id}',
+            f'{self.url}/job/{job_id}',
             headers=self.headers,
         )
         response.raise_for_status()
@@ -65,7 +67,7 @@ class ClientV0041(BaseClient):
 
     def job_cancel(self, job_id: str) -> None:
         response = requests.delete(
-            f'{self.url}/slurm/v0.0.41/job/{job_id}',
+            f'{self.url}/job/{job_id}',
             headers=self.headers,
         )
         response.raise_for_status()
@@ -88,7 +90,7 @@ class ClientV0041(BaseClient):
             Response from the API or None if extension not triggered
         """
         response = requests.get(
-            f'{self.url}/slurm/v0.0.41/job/{job_id}',
+            f'{self.url}/job/{job_id}',
             headers=self.headers
         )
         if response.status_code != 200:
@@ -103,12 +105,13 @@ class ClientV0041(BaseClient):
 
         current_time_limit = job.get('time_limit').get('number')
         response = requests.post(
-            f'{self.url}/slurm/v0.0.41/job/{job_id}',
+            f'{self.url}/job/{job_id}',
             json={'time_limit': {'set': True, 'number': current_time_limit + add_minutes}},
             headers=self.headers
         )
         if not response.status_code == 200:
-            slurmpy_logger.info(f"Failed updating time: {response.text}, your account may not have rights to extend jobs.")
+            slurmpy_logger.info(
+                f"Failed updating time: {response.text}, your account may not have rights to extend jobs.")
             return None
 
         return response.json()
