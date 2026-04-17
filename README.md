@@ -107,3 +107,13 @@ The library uses a function resolution mechanism to handle API methods that may 
    - If not found, the library searches older implementations sorted by version
    - An `AttributeError` is raised if the method is not found in any supported version
 
+### Contributing
+
+The current integration is very barebones, and only for the specific versions that we needed currently. However, this framework is setup to make additions of new Slurm API versions relatively simple. 
+
+#### A completely new method
+If you want to add a new endpoint that has not been implemented whatsoever, you can add the new method to the BaseClient, and then your API-version specific implementation in `src/slurmpy/<your_version>`. 
+
+#### Slurm API vX.Y.ZZ broke integration
+If a new Slurm API version broke backwards compatibility, it is typically only the case for a select subset of the available endpoints.
+To add the integration for this new data input-output parsing, create a new class version and only write the new method. The SlurmClient will automatically fall-back on the latest previous version of other methods, so you don't have to implement everything.
