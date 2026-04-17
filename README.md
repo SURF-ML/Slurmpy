@@ -96,33 +96,14 @@ client = SlurmClient(
 
 ### Function Resolution with Fallback Lookup
 
-The library uses a sophisticated function resolution mechanism to handle API methods that may differ between versions:
+The library uses a function resolution mechanism to handle API methods that may differ between versions:
 
 1. **Primary Client**: When a method is called (e.g., `client.job_status()`), it first delegates to the primary client instance that was selected during initialization.
 
-2. **Fallback Chain**: If a method is not available on the primary client, the library searches older implementations in descending version order. This allows you to use methods from older API versions even when connected to a newer version.
+2. **Fallback Chain**: If a method is not available on the primary client, the library searches older implementations in descending version order. This allows you to use methods from older API versions even when connected to a newer version. As in most cases between SLURM API versions the input/output is the same.
 
 3. **Attribute Resolution Order**:
-   - Core/internal attributes (like `client`, `max_version`) are accessed directly
    - Methods are first looked up on the primary client
    - If not found, the library searches older implementations sorted by version
    - An `AttributeError` is raised if the method is not found in any supported version
 
-This design ensures:
-- **Backward compatibility**: Older API methods remain accessible
-- **Forward compatibility**: Newer versions are tried first
-- **Graceful degradation**: If a feature isn't available in your server's version, you get a clear error message
-
-### Example: Using Version-Specific Features
-
-```python
-client = SlurmClient(url, user, token)  # Auto-detects version
-
-# Primary methods work on the detected version
-status = client.job_status("12345")
-
-# If a method exists only in older versions, it's still accessible
-# through the fallback mechanism if needed
-```
-
-The version detection and fallback system is logged for debugging purposes, so you can trace which version was selected and how method resolution occurs.
