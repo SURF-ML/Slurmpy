@@ -33,6 +33,9 @@ class SlurmClient(BaseClient):
             implementation = next(filter(lambda x: x.version_str == version, SLURM_IMPLEMENTATIONS))
             self.client = implementation(url, user, token)
 
+        if self.client is None:
+            raise HTTPError('None of the supported Slurm versions could connect to the server.')
+
     def __getattribute__(self, name):
         # Always allow access to core/internal attributes first
         if name in {
