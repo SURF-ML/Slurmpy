@@ -96,6 +96,7 @@ class ClientV0041(BaseClient):
         statuses = self.node_status(node_name)
         if 'DRAIN' in statuses:
             slurmpy_logger.info(f"Not extending job due to `DRAIN` state on node {node_name}.")
+            return None
 
         now = datetime.datetime.now().timestamp()
         end_time = job.get('end_time').get('number')
