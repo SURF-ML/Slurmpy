@@ -6,7 +6,7 @@ Combines endpoint handlers and response parsing for v0.0.41.
 from __future__ import annotations
 
 import datetime
-from typing import Any
+from typing import Any, Literal, List
 
 import requests
 from requests import Response
@@ -80,6 +80,7 @@ class ClientV0041(BaseClient):
     ) -> Response | None:
         """
         Extend job runtime for v0.0.41.
+        Will honor the Slurm DRAIN state and not extend the jobs when this node state is encountered.
 
         Args:
             job_id: The job ID to extend
@@ -89,14 +90,13 @@ class ClientV0041(BaseClient):
         Returns:
             Response from the API or None if extension not triggered
         """
-        response = requests.get(
-            f'{self.url}/job/{job_id}',
-            headers=self.headers
-        )
-        if response.status_code != 200:
-            return None
+        job = self.job_status(job_id)
 
-        job = response.json()['jobs'][0]
+        node_name = job.get('job_resources').get('nodes').get('list')
+        statuses = self.node_status(node_name)
+        if 'DRAIN' in statuses:
+            slurmpy_logger.info(f"Not extending job due to `DRAIN` state on node {node_name}.")
+
         now = datetime.datetime.now().timestamp()
         end_time = job.get('end_time').get('number')
 
@@ -115,3 +115,15 @@ class ClientV0041(BaseClient):
             return None
 
         return response.json()
+
+    def node_status(self, node_name: str) -> List[Literal['DOWN', 'DRAIN', 'IDLE', 'MIXED', 'NOT_RESPONDING', 'ALLOCATED']]:
+        response = requests.get(
+            f'{self.url}/node/{node_name}',
+            headers=self.headers
+        )
+        response.raise_for_status()
+        data = response.json()
+        nodes = data.get('nodes')
+        if len(nodes) > 0:
+            slurmpy_logger.info("More than one node matched node name, selecting first one.")
+        return nodes[0].get('state')

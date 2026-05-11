@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, List, Literal
 
 
 class SlurmResponseError(Exception):
@@ -44,4 +44,7 @@ class BaseClient:
                         add_minutes: int = 60,
                         min_job_runtime_to_extend: int = 60
                         ):
+        raise NotImplementedError()
+
+    def node_status(self, node_name: str) -> List[Literal['DOWN', 'DRAIN', 'IDLE', 'MIXED', 'NOT_RESPONDING', 'ALLOCATED']]:
         raise NotImplementedError()
