@@ -46,6 +46,7 @@ class SlurmClient(BaseClient):
             "__dict__",
             "__getattribute__",
             "__getattr__",
+            "_url"
         }:
             return object.__getattribute__(self, name)
 
@@ -63,7 +64,7 @@ class SlurmClient(BaseClient):
 
         for implementation in implementations:
             if name in implementation.__dict__:
-                fallback_client = implementation(client.url, client.user, client.token)
+                fallback_client = implementation(client._url, client.user, client.token)
                 slurmpy_logger.debug(f"Dispatching request via fallback for: {name}")
                 return getattr(fallback_client, name)
 
