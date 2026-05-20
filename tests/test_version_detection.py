@@ -57,7 +57,7 @@ class TestVersionAutoDetection:
 
                 client = SlurmClient('https://slurm.example.com', 'user', 'token')
                 result = client.job_submit({'script': 'test.sh'})
-
+                client.job_extend_time('1234')
                 mock_v41_submit.assert_called_once()
                 assert result == {'job_id': 123}
         finally:

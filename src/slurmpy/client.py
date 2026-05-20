@@ -65,6 +65,7 @@ class SlurmClient(BaseClient):
         for implementation in implementations:
             if name in implementation.__dict__:
                 fallback_client = implementation(client._url, client.user, client.token)
+                fallback_client.version_str = client.version_str
                 slurmpy_logger.debug(f"Dispatching request via fallback for: {name}")
                 return getattr(fallback_client, name)
 
