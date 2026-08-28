@@ -125,6 +125,6 @@ class ClientV0041(BaseClient):
         response.raise_for_status()
         data = response.json()
         nodes = data.get('nodes')
-        if len(nodes) > 0:
+        if len(nodes) > 1:
             slurmpy_logger.info("More than one node matched node name, selecting first one.")
         return nodes[0].get('state')
