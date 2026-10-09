@@ -92,7 +92,12 @@ class ClientV0041(BaseClient):
         """
         job = self.job_status(job_id)
 
-        node_name = job.get('job_resources').get('nodes').get('list')
+        job_resources = job.get('job_resources')
+        if job_resources is None:
+            slurmpy_logger.info(f"Job {job_id} has no `job_resources`; nothing to extend.")
+            return None
+
+        node_name = job_resources.get('nodes').get('list')
         statuses = self.node_status(node_name)
         if 'DRAIN' in statuses:
             slurmpy_logger.info(f"Not extending job due to `DRAIN` state on node {node_name}.")
